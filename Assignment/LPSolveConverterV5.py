@@ -323,24 +323,29 @@ def generate_constraint_8(transition_arcs, idle_arcs, interior_arcs, dayoff_arcs
     return str_lst
 
 
-number_teachers = 2
+number_teachers = 8
 teachers = np.arange(1, number_teachers + 1, 1)
 
-number_periods = 4
+number_periods = 5
 periods = np.arange(1, number_periods + 1, 1)
 
-number_days = 4
+number_days = 5
 days = np.arange(1, number_days + 1, 1)
 
-number_classes = 2
+number_classes = 3
 classes = np.arange(1, number_classes + 1, 1)
 
-min_num_double_lessons = 2
+min_num_double_lessons = 1
 
-max_hrs = np.ones((number_teachers, number_classes))*10
-max_hrs[0][0] = 6
-max_hrs[1][1] = 6
-max_hrs_per_day = np.ones((number_teachers, number_classes))*number_periods
+# max_hrs = np.ones((number_teachers, number_classes))*10
+# max_hrs[0][0] = 6
+# max_hrs[1][1] = 6
+# max_hrs_per_day = np.ones((number_teachers, number_classes))*number_periods
+
+max_hrs = np.array([[3, 3, 3], [5, 5, 0], [3, 3, 3], [3, 3, 3], [0, 5, 5], [4, 4, 4], [5, 0, 5], [2, 2, 2]])
+
+# From what I can see it seems to be only 2 hrs a day.
+max_hrs_per_day = np.ones((number_teachers, number_classes))*2
 
 min_working_days = 1
 
