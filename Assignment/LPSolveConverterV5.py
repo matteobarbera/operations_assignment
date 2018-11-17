@@ -2,7 +2,7 @@ import numpy as np
 
 
 def generate_arcs(Teacher_lst, Node_lst, Day_lst, Classes_lst):
-    idle_arcs = np.empty((Teacher_lst, Node_lst-1, Day_lst), dtype='U20') # a11 => string for 11 chrs
+    idle_arcs = np.empty((Teacher_lst, ((Node_lst-1)-1), Day_lst), dtype='U20') # Revised; number rows made one unit smaller. 
     dayoff_arcs = np.empty((Teacher_lst, 1, Day_lst), dtype='U20')
     for teacher in range(Teacher_lst):
         for day in range(Day_lst):
@@ -10,9 +10,12 @@ def generate_arcs(Teacher_lst, Node_lst, Day_lst, Classes_lst):
             # Note that the number of day off arcs is not # Days - 1, since the number of day nodes is actually # Day + 1
             # The number of acrs is # nodes - 1, thus, # Days = # Dayoff arcs.
             dayoff_arcs[teacher, 0, day] = "b_{}_{}".format(teacher + 1, day + 1)
-            for period in range(Node_lst-1):
+            for period in range(Node_lst-2):                                    # Revised; range adjusted for less rows
                 # w notation -> w_TAC, T = Teacher, A = Day, C = From Period
-                idle_arcs[teacher, period, day] = "w_{}_{}_{}".format(teacher + 1, day + 1, period + 1)
+                if period >= 0:                                                 # Added
+                    idle_arcs[teacher, period, day] = "w_{}_{}_{}".format(teacher + 1, day + 1, period + 2) # Added, made sure that the appropriate subscript is appended
+                elif period == (Node_lst - 2):                                  # Added, ensures that penultimate and final periods do not share an idle arc
+                    idle_arcs[teacher, period, day] = "w_{}_{}_{}".format(teacher + 1, day + 1, period + 1) 
 
     interior_arcs = np.empty((Teacher_lst, (Node_lst*2-3)*Classes_lst, Day_lst), dtype='U20')
     for teacher in range(Teacher_lst):
@@ -69,15 +72,22 @@ def generate_constraint_1(transition_arcs, idle_arcs, interior_arcs, dayoff_arcs
         for j in range(len(Node_lst)):
             if j == (len(Node_lst)-1):
                 sum_node = "-1*{}".format(transition_arcs[-1][i])
-                sum_node += " + {}".format(idle_arcs[j - 1][i])
+                # sum_node += " + {}".format(idle_arcs[j - 1][i]) # Revised; removed thsi sum since penultimate node should not have an arc
             else:
                 if j == 0:
                     sum_node = transition_arcs[1 + j][i]
                     # print(idle_arcs[j][i])
-                    sum_node += " - {}".format(idle_arcs[j][i])
+                    # sum_node += " - {}".format(idle_arcs[j][i]) # Revised; removed this sum since the first node should not have an arc
                 else:
-                    sum_node = "{} - {} - {} + {}".format(transition_arcs[1 + j][i], transition_arcs[len(Node_lst) - 1 + j, i],
-                                                          idle_arcs[j][i], idle_arcs[j - 1][i])
+                    if j == 1:                                    # Added; for period 2, there is only a leaving idle arc 
+                        sum_node = "{} - {} - {}".format(transition_arcs[1 + j][i], transition_arcs[len(Node_lst) - 1 + j, i],
+                                                          idle_arcs[j-1][i])        # Added; (j - 1), since the idle arc lst leads 1 unit ahead of the others
+                    elif j < (len(Node_lst) - 2):                 # Added; for all in between periods, we have leaving and entering arcs
+                        sum_node = "{} - {} - {} + {}".format(transition_arcs[1 + j][i], transition_arcs[len(Node_lst) - 1 + j, i],
+                                                          idle_arcs[j-1][i], idle_arcs[j - 2][i])   # Added; see comment for j == 1
+                    else:                                         # Added; penultimate arc only has entering idle arc
+                        sum_node = "{} - {} + {}".format(transition_arcs[1 + j][i], transition_arcs[len(Node_lst) - 1 + j, i],
+                                                             idle_arcs[j - 2][i])   # Added; see comment for j == 1
             for k in range(len(class_lst)):
                 index = k*(2*len(Node_lst)-3) + j
                 if j == 0:
