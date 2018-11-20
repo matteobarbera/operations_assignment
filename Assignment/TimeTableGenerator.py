@@ -1,5 +1,6 @@
 import numpy as np
 import pandas as pd
+import xlwt             # You can install this with 'pip install xlwt'
 
 
 def extract_results_robust(csv_filename):
@@ -42,7 +43,7 @@ def create_timetable(arcs, number_periods, number_days):
     def determine_sta(string):
         try:
             output = int(string[-1]) - int(string[-3])
-        except:
+        except IndexError:
             output = 0
         return output
 
@@ -215,6 +216,121 @@ def create_timetable(arcs, number_periods, number_days):
 
     return tt
 
+
+def create_individual_timetable(arcs, number_periods, number_days, number_teachers, output_file_name):
+
+    def extract_nodes(arcs, reference, sorting_index, accept_g=False):
+        output = []
+        if accept_g:
+            for i in range(len(arcs)):
+                if str(arcs[i, 0][sorting_index]) == str(reference):
+                    output.append(arcs[i][0])
+        else:
+            for i in range(len(arcs)):
+                if arcs[i, 0][0] != 'g':
+                    if str(arcs[i, 0][sorting_index]) == str(reference):
+                        output.append(arcs[i][0])
+        return output
+
+    def extract_vars(variable, list, index):
+        arcs = []
+        for i in xrange(len(list)):
+            if str(list[i][index]) == '{}'.format(variable):
+                arcs.append(list[i])
+        return arcs
+
+    def determine_sta(string):
+        try:
+            output = int(string[-1]) - int(string[-3])
+        except IndexError:
+            output = 0
+        return output
+
+    wb = xlwt.Workbook()
+    bold = xlwt.easyxf('font: bold on')
+
+    for teacher in xrange(number_teachers):
+        ws = wb.add_sheet('Teacher {}'.format(teacher+1))
+        for day in xrange(number_days):
+            ws.write(0, day + 1, 'Day {}'.format(day + 1), bold)
+            day_lst = extract_nodes(arcs, day + 1, 4)
+            teacher_dsa = extract_vars('{}'.format(teacher + 1), extract_vars('i', day_lst, 0), 2)
+            if len(teacher_dsa) > 0:
+                x_arcs = extract_vars('{}'.format(teacher + 1), extract_vars('x', day_lst, 0), 2)
+                w_arcs = extract_vars('{}'.format(teacher + 1), extract_vars('w', day_lst, 0), 2)
+                if len(w_arcs) <= 0:
+                    no_idle = True
+                else:
+                    no_idle = False
+                if no_idle:
+                    for period in xrange(number_periods):
+                        if day == 0:
+                            ws.write(period + 1, 0, 'Period {}'.format(period + 1), bold)
+                        period_x_lst = extract_vars('{}'.format(period+1), x_arcs, 8)
+                        if period == 0:
+                            if len(period_x_lst) >= 1:
+                                if determine_sta(period_x_lst[0]) != 2:
+                                    ws.write(period + 1, day + 1, 'Single Lesson: Class {}'.format(period_x_lst[0][6]))
+                                else:
+                                    ws.write(period + 1, day + 1, 'Double Lesson: Class {}'.format(period_x_lst[0][6]))
+                            else:
+                                ws.write(period + 1, day + 1, '-')
+                        else:
+                            if len(period_x_lst) >= 1:
+                                if determine_sta(period_x_lst[0]) != 2:
+                                    ws.write(period + 1, day + 1, 'Single Lesson: Class {}'.format(period_x_lst[0][6]))
+                                else:
+                                    ws.write(period + 1, day + 1, 'Double Lesson: Class {}'.format(period_x_lst[0][6]))
+                            else:
+                                old_period_x_lst = extract_vars('{}'.format(period), x_arcs, 8)
+                                if len(old_period_x_lst) >= 1:
+                                    if determine_sta(old_period_x_lst[0]) == 2:
+                                        ws.write(period + 1, day + 1, 'Double Lesson: Class {}'.format(old_period_x_lst[0][6]))
+                                    else:
+                                        ws.write(period + 1, day + 1, '-')
+                                else:
+                                    ws.write(period + 1, day + 1, '-')
+                else:
+                    for period in xrange(number_periods):
+                        if day == 0:
+                            ws.write(period + 1, 0, 'Period {}'.format(period + 1), bold)
+                        period_w_lst = extract_vars('{}'.format(period + 1), w_arcs, 6)
+                        if len(period_w_lst) >= 1:
+                            ws.write(period + 1, day + 1, 'Free (Idle) Period')
+                        period_x_lst = extract_vars('{}'.format(period+1), x_arcs, 8)
+                        if period == 0:
+                            if len(period_x_lst) >= 1:
+                                if determine_sta(period_x_lst[0]) != 2:
+                                    ws.write(period + 1, day + 1,
+                                             'Single Lesson: Class {}'.format(period_x_lst[0][6]))
+                                else:
+                                    ws.write(period + 1, day + 1,
+                                             'Double Lesson: Class {}'.format(period_x_lst[0][6]))
+                            else:
+                                ws.write(period + 1, day + 1, '-')
+                        else:
+                            if len(period_x_lst) >= 1:
+                                if determine_sta(period_x_lst[0]) != 2:
+                                    ws.write(period + 1, day + 1,
+                                             'Single Lesson: Class {}'.format(period_x_lst[0][6]))
+                                else:
+                                    ws.write(period + 1, day + 1,
+                                             'Double Lesson: Class {}'.format(period_x_lst[0][6]))
+                            else:
+                                old_period_x_lst = extract_vars('{}'.format(period), x_arcs, 8)
+                                if len(old_period_x_lst) >= 1:
+                                    if determine_sta(old_period_x_lst[0]) == 2:
+                                        ws.write(period + 1, day + 1,
+                                                 'Double Lesson: Class {}'.format(old_period_x_lst[0][6]))
+                                    else:
+                                        ws.write(period + 1, day + 1, '-')
+                                else:
+                                    ws.write(period + 1, day + 1, '-')
+
+    wb.save('{}'.format(output_file_name))
+
+    return 'Done'
+
 # After running the LPSolve Model, we may save the results as a csv file. This program uses that csv file to create
 # a rudimentary timetable.
 file_name = 'Own2.csv'
@@ -222,9 +338,11 @@ file_name = 'Own2.csv'
 # Calls the extract results function which reads the csv file and retrieves all the active arcs, and the objective value
 obj, active_arcs = extract_results_robust(file_name)
 
-# Here, the number of periods and days of the model need to be inputted, these are needed to produce the timetable
+# Here, the number of periods, days, and teachers of the model need to be inputted, these are needed to produce
+# the timetable
 periods = 5
 days = 5
+teachers = 3
 
 # Here, a timetable is created by calling the function "create_timetable". This timetable is an overall timetable and
 # includes all classes for a given period and day. The duration of each lesson is also considered; in that, a lesson
@@ -237,4 +355,10 @@ timetable = create_timetable(active_arcs, periods, days)
 # Here, the data is exported into a csv file such that it can be read and manipulated in excel, which gives a much more
 # intuitive interface by which to work with the timetable.
 data_frame = pd.DataFrame(timetable)
-data_frame.to_csv('Timetable {}'.format(file_name))
+data_frame.to_csv('Grouped Timetable {}'.format(file_name))
+
+# Here, a timetable for each teacher is exported into an excel file. Each sheet corresponds to a teacher. This gives a
+# cleaner overview of a given teacher's schedule. Note that although this timetable looks nicer, the grouped timetable
+# above gives a much better overview - allowing conflicts to be more easily identified.
+ind = create_individual_timetable(active_arcs, periods, days, teachers, 'Individual Timetable {}.xls'.format(file_name[:-4]))
+print(ind)
