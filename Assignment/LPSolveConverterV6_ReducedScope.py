@@ -353,8 +353,8 @@ def generate_min_working_days(Ltc, max_hrs, number_teachers, number_periods):
     h = 0
     ytc_2 = 0
     ytc_lst = []
-    for teacher in xrange(number_teachers):
-        for hour in xrange(len(max_hrs[teacher])):
+    for teacher in range(number_teachers):
+        for hour in range(len(max_hrs[teacher])):
             h += max_hrs[teacher][hour]
             h2 = np.ceil(max_hrs[teacher][hour]/float(Ltc))
             if h2 > ytc_2:
@@ -369,9 +369,9 @@ def generate_min_working_days(Ltc, max_hrs, number_teachers, number_periods):
 
 def generate_additional_constraint_1(transition_arcs, number_periods, number_teachers, number_days):
     c_lst = []
-    for teacher in xrange(number_teachers):
-        for day in xrange(number_days):
-            for period in xrange(number_periods-2):
+    for teacher in range(number_teachers):
+        for day in range(number_days):
+            for period in range(number_periods-2):
                 c_sum = "{} + {} <= 1;".format(transition_arcs[teacher, period + 2, day], transition_arcs[teacher, number_periods + period + 1, day])
                 c_lst.append(c_sum)
     return c_lst
@@ -380,9 +380,9 @@ def generate_additional_constraint_1(transition_arcs, number_periods, number_tea
 def generate_additional_constriant_23(transition_arcs, idle_arcs, number_periods, number_teachers, number_days):
     c2_lst = []
     c3_lst = []
-    for teacher in xrange(number_teachers):
-        for day in xrange(number_days):
-            for period in xrange(number_periods - 2):
+    for teacher in range(number_teachers):
+        for day in range(number_days):
+            for period in range(number_periods - 2):
                 c2_sum = '{} + {} <= 1;'.format(transition_arcs[teacher, period + 2, day], idle_arcs[teacher, period, day])
                 c2_lst.append(c2_sum)
                 c3_sum = '{} + {} <= 1;'.format(transition_arcs[teacher, number_periods + period + 2, day], idle_arcs[teacher, period, day])
@@ -392,8 +392,8 @@ def generate_additional_constriant_23(transition_arcs, idle_arcs, number_periods
 
 def generate_constraint_9(unsatisfied_arcs):
     g_lst = []
-    for teacher in xrange(len(unsatisfied_arcs)):
-        for day in xrange(len(unsatisfied_arcs[teacher])):
+    for teacher in range(len(unsatisfied_arcs)):
+        for day in range(len(unsatisfied_arcs[teacher])):
             g_sum = '{} >= 0;'.format(unsatisfied_arcs[teacher][day])
             g_lst.append(g_sum)
     return g_lst
@@ -548,23 +548,23 @@ if print_constraint_9:
 
 if print_add_constraint_1:
     print("\n/*--------------------- ADDITIONAL CONSTRAINT 1 - Avoid entering and leaving a given day through the same node ---------------------*/")
-    for teacher in xrange(number_teachers):
+    for teacher in range(number_teachers):
         print("\n\n/* Teacher {} */".format(teacher + 1))
-        for i in xrange((number_periods-2)*number_days):
+        for i in range((number_periods-2)*number_days):
             print (add_constraint_1[teacher*(number_periods - 2)*number_days + i])
 
 if print_add_constraint_2:
     print("\n/*--------------------- ADDITIONAL CONSTRAINT 2 - Avoid entering into an idle period ---------------------*/")
-    for teacher in xrange(number_teachers):
+    for teacher in range(number_teachers):
         print("\n\n/* Teacher {} */".format(teacher + 1))
-        for i in xrange((number_periods-2)*number_days):
+        for i in range((number_periods-2)*number_days):
             print (add_constraint_2[teacher*(number_periods-2)*number_days + i])
 
 if print_add_constraint_3:
     print("\n/*--------------------- ADDITIONAL CONSTRAINT 3 - Avoid leaving from an idle period ---------------------*/")
-    for teacher in xrange(number_teachers):
+    for teacher in range(number_teachers):
         print("\n\n/* Teacher {} */".format(teacher + 1))
-        for i in xrange((number_periods-2)*number_days):
+        for i in range((number_periods-2)*number_days):
             print (add_constraint_3[teacher*(number_periods-2)*number_days + i])
 
 if print_constraint_8:
