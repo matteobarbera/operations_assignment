@@ -285,7 +285,9 @@ def create_individual_timetable(arcs, number_periods, number_days, number_teache
                                 old_period_x_lst = extract_vars('{}'.format(period), x_arcs, 8)
                                 if len(old_period_x_lst) >= 1:
                                     if determine_sta(old_period_x_lst[0]) == 2:
-                                        ws.write(period + 1, day + 1, 'Double Lesson: Class {}'.format(old_period_x_lst[0][6]))
+                                        # ws.write(period + 1, day + 1, 'Double Lesson: Class {}'.format(old_period_x_lst[0][6]))
+                                        # Top Row, Bottom Row, Left Col, Right Col
+                                        ws.merge(period, period + 1, day + 1, day + 1)
                                     else:
                                         ws.write(period + 1, day + 1, '-')
                                 else:
@@ -320,8 +322,10 @@ def create_individual_timetable(arcs, number_periods, number_days, number_teache
                                 old_period_x_lst = extract_vars('{}'.format(period), x_arcs, 8)
                                 if len(old_period_x_lst) >= 1:
                                     if determine_sta(old_period_x_lst[0]) == 2:
-                                        ws.write(period + 1, day + 1,
-                                                 'Double Lesson: Class {}'.format(old_period_x_lst[0][6]))
+                                        # ws.write(period + 1, day + 1,
+                                        #          'Double Lesson: Class {}'.format(old_period_x_lst[0][6]))
+                                        # Top Row, Bottom Row, Left Col, Right Col
+                                        ws.merge(period, period + 1, day + 1, day + 1)
                                     else:
                                         ws.write(period + 1, day + 1, '-')
                                 else:
